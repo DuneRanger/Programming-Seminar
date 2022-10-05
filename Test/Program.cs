@@ -5,25 +5,27 @@ namespace Classes
     public class Government
     {
         public PrimeMinister PrMin;
-        public Minister[] Ministers;
+        public List<Minister> Ministers;
         public string Land;
 
-        public Government(PrimeMinister prmin, string land)
+        public Government(string land)
         {
             Land = land;
+        }
+        public void SetPrimeMinister(PrimeMinister prmin)
+        {
             PrMin = prmin;
         }
-
-        public void SetMinisters(Minister[] ministers)
+        public void SetMinisters(List<Minister> ministers)
         {
             Ministers = ministers;
         }
 
         public void PrintMinisters()
         {
-            for (int i = 0; i < Ministers.Length; i++)
+            foreach (var min in Ministers)
             {
-                Console.WriteLine(Ministers[i].Name);
+                Console.WriteLine(min.Name);
             }
         }
 
@@ -48,7 +50,7 @@ namespace Classes
 
         public string StrongAnnouncement()
         {
-            return "The current government is the best in the history of this land!!"
+            return "The current government is the best in the history of this land!!";
         }
     }
 
@@ -65,14 +67,14 @@ namespace Classes
 
         private void Resign()
         {
-            for (int i = 0; i < PrMin.Gov.Ministers.Length; i++)
+            int counter = 0;
+            foreach (var min in PrMin.Gov.Ministers)
             {
-                if (PrMin.Gov.Ministers[i].Name == Name)
+                if (min.Name == Name)
                 {
-                    var foos = new List<Minister>(PrMin.Gov.Ministers);
-                    foos.RemoveAt(i);
-                    PrMin.Gov.Ministers = foos.ToArray();
+                    PrMin.Gov.Ministers.RemoveAt(counter);
                 }
+                counter++;
             }
         }
 
@@ -91,9 +93,11 @@ namespace Classes
 
 
 
-            Government TestGov = new Government(new PrimeMinister("PrimeMime", TestGov), "Czechia");
+            Government TestGov = new Government("Czechia");
 
-            Minister[] ministers;
+            TestGov.SetPrimeMinister(new PrimeMinister("PrimeMime", TestGov));
+
+            List<Minister> ministers = new List<Minister>();
 
             for (int i = 0; i < 10; i++)
             {
