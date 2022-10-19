@@ -8,11 +8,30 @@ namespace CopiedClasses
 {
     class Vlada
     {
-        public string zeme;
-        public Premier premier;
-        public List<Ministr> ministri;
+        public string zeme { get; private set; }
+        public Premier premier
+        {
+            get
+            {
+                return premier;
+            }
+            set {
+                if (value.jmeno != null)
+                {
+                    premier = value;
+                }
+            }
+        }
+        public List<Ministr> ministri { get; private set; }
 
-        bool ZkusAnektovat(string co)
+        public Vlada(string zem, Premier prem, List<Ministr> mins)
+        {
+            zeme = zem;
+            premier = prem;
+            ministri = mins;
+        }
+
+        public bool ZkusAnektovat(string co)
         {
             if (co == "Slovensko")
             {
@@ -29,6 +48,12 @@ namespace CopiedClasses
     {
         public string jmeno;
         public Vlada vlada;
+
+        public Premier(string jmen, Vlada vlad)
+        {
+            jmeno = jmen;
+            vlada = vlad;
+        }
 
         public string SilneProhlaseni()
         {
@@ -67,9 +92,7 @@ namespace CopiedClasses
     {
         public void InfiltrateGov(Vlada Gov)
         {
-            Gov.premier = new Premier();
-            Gov.premier.jmeno = "Ondrej";
-            Gov.premier.vlada = Gov;
+            Gov.premier = new Premier("Ondrej", Gov);
         }
     }
 
@@ -77,16 +100,13 @@ namespace CopiedClasses
     {
         static void Main(string[] args)
         {
-            Vlada Government = new Vlada();
             Premier PrimeMinister = new Premier();
             List<Ministr> Ministers = new List<Ministr>() {};
+            Vlada Government = new Vlada("Česko", PrimeMinister, Ministers);
 
-            Government.zeme = "Česko";
-            Government.premier = PrimeMinister;
-            Government.ministri = Ministers;
-
-            PrimeMinister.jmeno = "Ondřej";
-            PrimeMinister.vlada = Government;
+            Government.premier = new Premier("Ondřej", Government);
+            //PrimeMinister.jmeno = "Ondřej";
+            //PrimeMinister.vlada = Government;
 
             int ministerAmount = 10;
 
