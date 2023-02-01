@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.ConstrainedExecution;
+using System.Net;
+using System.IO;
 
 namespace Wordle
 {
@@ -14,28 +17,31 @@ namespace Wordle
             private string word { get; set; }
             private int attempt { get; set; }
 
-            private string[] wordBank =
-            {
-                "howdy",
-                "doody",
-                "shoot",
-                "crypt",
-                "mouse",
-                "moose",
-                "goose",
-                "space",
-                "eight"
-            };
+            private string[] wordBank { get; set; }   
 
             private void GenerateWord()
             {
+                Console.WriteLine("Loading words...");
+
+                WebClient client = new WebClient();
+                Stream stream = client.OpenRead("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt");
+                StreamReader reader = new StreamReader(stream);
+                wordBank = reader.ReadToEnd().Split('\n');
+                string[] Filter(string[] input)
+                {
+                    return input.Where(c => c.Length ==  6).ToArray();
+                }
+                wordBank = Filter(wordBank);
+
+                Console.WriteLine(wordBank.Length + " words loaded.");
+
                 this.word = wordBank[new Random().Next(wordBank.Length-1)];
                 return;
             }
 
             private bool CheckInput(string input)
             {
-                if (input.Length != this.word.Length)
+                if (input.Length != 5)
                 {
                     this.attempt--;
                     Console.WriteLine("Please enter only 5 letter words");
@@ -49,7 +55,7 @@ namespace Wordle
                         return true;
                     };
                 }
-                for (int i = 0; i < input.Length; i++)
+                for (int i = 0; i < 5; i++)
                 {
 
 
@@ -60,7 +66,7 @@ namespace Wordle
                     else 
                     {
                         bool badIdea = false;
-                        for (int j = 0; j < this.word.Length; j++)
+                        for (int j = 0; j < 5; j++)
                         {
                             if (input[i] == this.word[j])
                             {
