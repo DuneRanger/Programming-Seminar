@@ -11,14 +11,15 @@ namespace Dijsktra
         public List<Vertex> connections;
         public List<int> connectionsCosts;
         public int pathCost;
-        public string path;
+        public enum state {open, visited, closed}
+        public state curState;
         public int ID;
         public Vertex(int id = -1)
         {
             connections = new List<Vertex>();
             connectionsCosts = new List<int>();
-            pathCost = 0;
-            path = "";
+            pathCost = Int32.MaxValue;
+            curState = Vertex.state.open;
             ID = id;
         }
     }
@@ -32,47 +33,53 @@ namespace Dijsktra
             vertices = new List<Vertex>();
         }
 
-        public static string Dijsktra(Graph graph, int startID, int endID)
+        public static int Dijsktra(Graph graph, int startID, int endID)
         {
-            List<Vertex> open = new List<Vertex>();
-            for (int i = 0; i < graph.vertices.Count; i++)
-            {
-                if (graph.vertices[i].ID == startID) open.Add(graph.vertices[i]);
-            }
+            List<Vertex> toVisit = new List<Vertex>();
 
-            while (open.Count != 0)
+            graph.vertices[startID].pathCost = 0;
+            toVisit.Add(graph.vertices[startID]);
+
+            while (toVisit.Count != 0)
             {
                 int smallestPathCost = Int32.MaxValue;
                 Vertex curV = new Vertex();
-                for (int i = 0; i < open.Count; i++)
+                for (int i = 0; i < toVisit.Count; i++)
                 {
-                    if (open[i].pathCost < smallestPathCost)
+                    if (toVisit[i].pathCost < smallestPathCost)
                     {
-                        smallestPathCost = open[i].pathCost;
-                        curV = open[i];
+                        smallestPathCost = toVisit[i].pathCost;
+                        curV = toVisit[i];
                     }
                 }
-                curV.path = $"";
 
                 for (int i = 0; i < curV.connections.Count; i++)
                 {
-                    curV.connections[i].pathCost = curV.pathCost + curV.connectionsCosts[i];
-                    open.Add(curV.connections[i]);
+                    if (curV.connections[i].curState != Vertex.state.closed)
+                    {
+                        if (curV.connections[i].pathCost > curV.pathCost + curV.connectionsCosts[i])
+                        {
+                            curV.connections[i].pathCost = curV.pathCost + curV.connectionsCosts[i];
+                        }
+                        if (curV.connections[i].curState != Vertex.state.visited)
+                        {
+                            toVisit.Add(curV.connections[i]);
+                            curV.connections[i].curState = Vertex.state.visited;
+                        }
+                    }
                 }
-                open.Remove(curV);
+                curV.curState = Vertex.state.closed;
+                toVisit.Remove(curV);
             }
 
-            Vertex endV = new Vertex();
-            for (int i = 0; i < graph.vertices.Count; i++)
+            Vertex endV = graph.vertices[endID];
+
+            if (endV.pathCost == Int32.MaxValue)
             {
-                if (graph.vertices[i].ID == endID) endV = graph.vertices[i];
+                endV.pathCost = -1;
             }
 
-            Queue<Vertex> pathQ = new Queue<Vertex>();
-            pathQ.Enqueue(endV);
-
-
-            return "";
+            return endV.pathCost;
         }
         
     }
@@ -84,10 +91,11 @@ namespace Dijsktra
         {
 
             int nodeNum, edgeNum;
-            Int32.TryParse(Console.ReadLine(), out nodeNum);
-            Int32.TryParse(Console.ReadLine(), out edgeNum);
 
-            List<List<int>> edges = new List<List<int>>();
+            string[] input = Console.ReadLine().Split();
+            Int32.TryParse(input[0], out nodeNum);
+            Int32.TryParse(input[1], out edgeNum);
+
             Graph graph = new Graph();
 
             // Initializes a list for each vertex ID
@@ -100,10 +108,10 @@ namespace Dijsktra
             // Adds the new connection to each vertex ID
             for (int i = 0; i < edgeNum; i++)
             {
-                string[] tokens = Console.ReadLine().Split();
-                int a = Int32.Parse(tokens[0]);
-                int b = Int32.Parse(tokens[1]);
-                int cost = Int32.Parse(tokens[2]);
+                input = Console.ReadLine().Split();
+                int a = Int32.Parse(input[0]);
+                int b = Int32.Parse(input[1]);
+                int cost = Int32.Parse(input[2]);
 
                 // Guarantees that the index of the cost is equal to the index of the vertex it leads to
                 graph.vertices[a].connections.Add(graph.vertices[b]);
@@ -116,10 +124,11 @@ namespace Dijsktra
 
 
             int startID, endID;
-            Int32.TryParse(Console.ReadLine(), out startID);
-            Int32.TryParse(Console.ReadLine(), out endID);
+            input = Console.ReadLine().Split();
+            Int32.TryParse(input[0], out startID);
+            Int32.TryParse(input[1], out endID);
 
-            Graph.Dijsktra(graph, startID, endID);
+            Console.WriteLine(Graph.Dijsktra(graph, startID, endID));
 
 
             Console.ReadLine();
