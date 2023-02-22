@@ -63,7 +63,7 @@ namespace Classes
             PrMin = prmin;
         }
 
-        private void Resign()
+         private void Resign()
         {
             for (int i = 0; i < PrMin.Gov.Ministers.Length; i++)
             {
@@ -94,6 +94,8 @@ namespace Classes
             Government TestGov = new Government(new PrimeMinister("PrimeMime", TestGov), "Czechia");
 
             Minister[] ministers;
+
+
 
             for (int i = 0; i < 10; i++)
             {
