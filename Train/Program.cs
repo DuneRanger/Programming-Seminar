@@ -4,7 +4,6 @@ namespace Train
 {
     enum Tiles {Empty, Train, Wagon, Wall, Door, Diamond}
 
-    //These vectors will take the place of our wagons
     public struct Vect2D
     {
         public int PosX { get; private set; }
@@ -49,7 +48,7 @@ namespace Train
 
     class Wagon
     {
-        public Vect2D Pos { get; private set; }
+        public Vect2D Pos { get; set; }
         public Vect2D Dir { get; private set; }
 
         public Tiles Type { get; private set; }
@@ -58,7 +57,7 @@ namespace Train
 
     class Train
     {
-        public Vect2D Pos { get; private set; }
+        public Vect2D Pos { get; set; }
         public bool Crashed { get; set; }
     }
 
@@ -138,6 +137,14 @@ namespace Train
         {
             this.Board = new Tiles[12, 12];
             this.T = new Train();
+
+            LoadStringMap(@"
+                X X X X X X X X X X X
+                X . . . . . . . . . X
+                . . . . . . . . . . .
+                . . . a . . . . . . .
+                T . . . . . . . . . .
+                ");
         }
 
         public void MoveTrain(Vect2D v)
@@ -191,14 +198,20 @@ namespace Train
                 {
                     switch (ArrayMap[x][y])
                     {
-                        case 'T':
-                            //this.T.BasicAddWagon(x, y);
+                        case '.':
+                            this.Board[x, y] = Tiles.Empty;
                             break;
                         case 'X':
                             this.Board[x, y] = Tiles.Wall;
                             break;
-                        case '.':
-                            this.Board[x, y] = Tiles.Empty;
+                        case 'T':
+                            this.T.Pos = new Vect2D(x, y);
+                            break;
+                        case 'D':
+                            this.Board[x, y] = Tiles.Door;
+                            break;
+                        case 'a':
+                            this.Board[x, y] = Tiles.Diamond;
                             break;
 
                         default:
@@ -238,26 +251,25 @@ namespace Train
         {
             Game g = new Game();
 
-
+            
             while (!g.Finished)
             {
+                Console.Clear();
+                Console.WriteLine(g.MapAsString());
+                var inp = Console.ReadKey();
+                Console.WriteLine();
+                var input = inp.KeyChar.ToString();
+                switch (input)
+                {
+                    case "w": case "W": g.MoveUp(); break;
+                    case "a": case "A": g.MoveLeft(); break;
+                    case "s": case "S": g.MoveDown(); break;
+                    case "d": case "D": g.MoveRight(); break;
+                }
 
-            Console.Clear();
-            Console.WriteLine(g.MapAsString());
-            var inp = Console.ReadKey();
-            Console.WriteLine();
-            var input = inp.KeyChar.ToString();
-            switch (input)
-            {
-                case "w": case "W": g.MoveUp(); break;
-                case "a": case "A": g.MoveLeft(); break;
-                case "s": case "S": g.MoveDown(); break;
-                case "d": case "D": g.MoveRight(); break;
+                //g.UpdateGhosts();
+                //g.UpdatePac(dir);
             }
-
-            //g.UpdateGhosts();
-            //g.UpdatePac(dir);
         }
-    }
     }
 }

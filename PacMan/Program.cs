@@ -5,9 +5,10 @@ namespace PacMan
 {
     public class Game
     {
+        public enum GameState { Running, Won, Lost}
         private Map Board { get; set; }
         public int score { get { return this.Board.score; } }
-        public bool Finished { get { return this.Board.score == this.Board.coinNum; }}
+        public GameState State { get; set; }
         private Ghost[] Ghosts { get; set; }
 
         public Game()
@@ -15,8 +16,8 @@ namespace PacMan
             this.Board = new Map();
             Ghosts = new Ghost[3];
             Ghosts[0] = new Ghost(0, 0, 0, this.Board.Board);
-            Ghosts[1] = new Ghost(11, 0, 1, this.Board.Board);
-            Ghosts[2] = new Ghost(0, 11, 2, this.Board.Board);
+            Ghosts[1] = new Ghost(11, 11, 1, this.Board.Board);
+            Ghosts[2] = new Ghost(0, 6, 2, this.Board.Board);
             foreach(Ghost g in Ghosts)
             {
                 this.Board.Board[g.posX, g.posY] = 'G';
@@ -26,18 +27,17 @@ namespace PacMan
         public void UpdatePac(char inp)
         {
             this.Board.UpdatePac(inp);
+            if (this.Board.CheckVictory()) this.State = Game.GameState.Won;
         }
 
         public void UpdateGhosts()
         {
             foreach(Ghost g in Ghosts)
             {
-                this.Board.RewriteTile('.', g.posX, g.posY);
+                this.Board.RewriteTile(g.MovingOnto, g.posX, g.posY);
                 if (g.Move(this.Board.PacRow, this.Board.PacCol))
                 {
-                    //Except now Ghosts move before Pac, so it is wrong
-                    //Ghost ate Pac
-                    //Do something
+                    this.State = Game.GameState.Lost;
                 }
                 this.Board.RewriteTile('G', g.posX, g.posY);
             }
@@ -46,7 +46,6 @@ namespace PacMan
         public void PrintBoard()
         {
             StringBuilder b = this.Board.BoardToString();
-            // overwrite map with the positions of the ghosts
             Console.WriteLine(b);
 
         }
@@ -57,6 +56,7 @@ namespace PacMan
         public int posX { get; private set; }
         public int posY { get; private set; }
         private int MoveType { get; set; }
+        public char MovingOnto { get; private set; }
 
 
 
@@ -68,6 +68,7 @@ namespace PacMan
             this.posY = y;
             this.MoveType = Type;
             this.Board = Board;
+            this.MovingOnto = this.Board[this.posX, this.posY];
         }
 
         public bool Move(int PacX, int PacY)
@@ -78,27 +79,32 @@ namespace PacMan
                 case 1: MoveTypeTwo(PacX, PacY); break;
                 case 2: MoveTypeThree(PacX, PacY); break;
             }
+            this.MovingOnto = this.Board[posX, posY];
             return this.posX == PacX && this.posY == PacY;
         }
 
         public void MoveTypeOne()
         {
             Random rnd = new Random();
-            int dir = rnd.Next(0, 4);
-            switch(dir)
+            bool moved = false;
+            while (!moved)
             {
-                case 0:
-                    this.MoveUp();
-                    break;
-                case 1:
-                    this.MoveLeft();
-                    break;
-                case 2:
-                    this.MoveRight();
-                    break;
-                case 3:
-                    this.MoveDown();
-                    break;
+                int dir = rnd.Next(0, 4);
+                switch(dir)
+                {
+                    case 0:
+                        if (this.MoveUp()) moved = true;
+                        break;
+                    case 1:
+                        if (this.MoveLeft()) moved = true;
+                        break;
+                    case 2:
+                        if (this.MoveRight()) moved = true;
+                        break;
+                    case 3:
+                        if (this.MoveDown()) moved = true;
+                        break;
+                }
             }
         }
         public void MoveTypeTwo(int PacX, int PacY)
@@ -107,6 +113,11 @@ namespace PacMan
             {
                 if (this.posY > PacY) this.MoveLeft();
                 else this.MoveRight();
+            }
+            else if (this.posY == PacY)
+            {
+                if (this.posX > PacX) this.MoveUp();
+                else this.MoveDown();
             }
             else if (new Random().Next(0, 2) == 1) {
                 if (this.posX > PacX)
@@ -146,9 +157,22 @@ namespace PacMan
                 }
             }
         }
+        class Node
+        {
+            public enum State { Unopened, Open, Closed}
+            public int posX { get; private set; }
+            public int posY { get; private set; }
+            public Node parent { get; private set; }
+            public int cost { get; set; }
+            public int costH { get; set; }
+            public int costTotal { get { return this.cost + this.costH; } }
+        }
         public void MoveTypeThree(int PacX, int PacY)
         {
-
+            // https://github.com/Hoyby/AStar/blob/main/src/aStar.py
+            PriorityQueue<Node, int> Q = new PriorityQueue<Node, int>();
+            Node Start = new Node();
+            Q.Enqueue(Start, -Start.costTotal);
         }
 
         private bool MoveUp()
@@ -204,21 +228,21 @@ namespace PacMan
         public Map()
         {
             this.Pac = '>';
-            this.PacRow = 5;
-            this.PacCol = 5;
+            this.PacRow = 11;
+            this.PacCol = 0;
             this.Board = new char[12, 12] {
-                { '.', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', '.'},
-                { '.', '.', '.', '.', '.', '.', '.', '.', 'X', '.', '.', '.'},
-                { '.', '.', '.', '.', '.', '.', '.', '.', 'X', '.', '.', '.'},
-                { '.', '.', '.', '.', '.', '.', '.', '.', 'X', '.', '.', '.'},
-                { '.', '.', '.', 'o', '.', '.', '.', '.', 'X', '.', '.', '.'},
-                { '.', '.', '.', 'o', '.', '.', '.', '.', 'X', '.', '.', '.'},
-                { '.', '.', '.', 'o', '.', '.', '.', '.', '.', '.', '.', '.'},
                 { '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'},
-                { '.', '.', '.', '.', 'o', '.', 'o', '.', '.', '.', '.', '.'},
-                { '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'},
-                { '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'},
-                { '.', '.', '.', 'X', 'X', 'X', 'X', 'X', '.', '.', '.', '.'},
+                { '.', 'X', '.', 'X', 'X', 'X', 'X', '.', 'X', '.', 'X', '.'},
+                { '.', '.', '.', 'X', '.', '.', '.', '.', 'X', 'o', '.', '.'},
+                { '.', 'X', 'X', 'X', '.', 'X', 'X', 'X', 'X', 'X', 'X', '.'},
+                { '.', 'X', '.', '.', 'o', '.', '.', '.', '.', '.', 'X', '.'},
+                { '.', '.', '.', 'X', '.', 'X', 'X', 'X', 'X', '.', '.', '.'},
+                { '.', 'X', '.', 'X', '.', '.', 'X', '.', 'X', '.', 'X', '.'},
+                { '.', 'X', '.', 'X', 'X', '.', 'X', '.', 'X', '.', 'X', '.'},
+                { '.', 'X', '.', '.', '.', '.', 'X', '.', '.', '.', 'X', '.'},
+                { '.', 'X', 'X', 'X', 'X', '.', 'X', '.', 'X', 'X', 'X', '.'},
+                { '.', 'X', 'X', '.', '.', '.', 'X', '.', '.', '.', 'X', '.'},
+                { '.', '.', '.', '.', 'X', '.', '.', '.', 'X', '.', '.', '.'},
             };
             this.Board[PacRow, PacCol] = this.Pac;
 
@@ -325,8 +349,8 @@ namespace PacMan
         static void Main(string[] args)
         {
             Game g = new Game();
-
-            while (!g.Finished)
+            
+            while (g.State == Game.GameState.Running)
             {
                 Console.Clear();
                 g.PrintBoard();
@@ -342,8 +366,16 @@ namespace PacMan
                     case "s": case "S": dir = 'v'; break;
                     case "d": case "D": dir = '>'; break;
                 }
-                g.UpdateGhosts();
                 g.UpdatePac(dir);
+                g.UpdateGhosts();
+            }
+            if (g.State == Game.GameState.Running)
+            {
+                Console.WriteLine("Congrats");
+            }
+            else
+            {
+                Console.WriteLine("lol get rekt");
             }
         }
     }
