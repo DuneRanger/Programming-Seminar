@@ -16,12 +16,12 @@ namespace PacMan
         {
             this.Board = new Map();
             // Since ghost positions are hard-coded, check the board before changing them
-            Ghosts = new Ghost[4];
-            Ghosts[0] = new Ghost(0, 0, 0, this.Board.Board);
-            Ghosts[1] = new Ghost(0, 14, 0, this.Board.Board);
-            Ghosts[2] = new Ghost(14, 14, 1, this.Board.Board);
-            Ghosts[3] = new Ghost(0, 7, 2, this.Board.Board);
-            foreach(Ghost g in Ghosts)
+            this.Ghosts = new Ghost[4];
+            this.Ghosts[0] = new Ghost(0, 0, 0, this.Board.Board);
+            this.Ghosts[1] = new Ghost(0, 14, 0, this.Board.Board);
+            this.Ghosts[2] = new Ghost(14, 14, 1, this.Board.Board);
+            this.Ghosts[3] = new Ghost(0, 7, 2, this.Board.Board);
+            foreach(Ghost g in this.Ghosts)
             {
                 this.Board.Board[g.posX, g.posY] = 'G';
             }
@@ -526,6 +526,9 @@ namespace PacMan
                 while (g.State == Game.GameState.Running)
                 {
                     Console.Clear();
+                    // For some reason, the first symbol is removed after this line
+                    // This Console.Write() guarantees that the whole board will be printed
+                    Console.Write(" ");
                     g.PrintBoard();
                     Console.WriteLine("Score: " + g.score);
                     var inp = Console.ReadKey();
